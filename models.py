@@ -10,9 +10,9 @@ class Product:
 
     def validate_stock(self, amount):
         if self.stock >= amount:
-            print(f"- {self.name} disponible: {self.stock}")
+            print(f"- {self.name} available: {self.stock}")
             return True
-        print(f"x {self.name} no disponible: {self.stock}")
+        print(f"x {self.name} not available: {self.stock}")
         return False
 
     def reduce_stock(self, amount):
@@ -24,25 +24,16 @@ class Product:
     def get_info(self):
         return f"Name: {self.name} - {self.category} - ${self.unit_price:.2f} | Stock: {self.stock}"
 
-# Lista de productos
-sofa_valery = Product("Valery", "sofa", 2500, 6, True)
-sofa_kyoto = Product("Kyoto", "sofa", 3700, 8, True)
-sofa_lucio = Product("Lucio", "sofa", 3500, 10, True)
-chair_teresa = Product("Tereza", "chair", 300, 60, True)
-chair_einstein = Product("Einstein", "chair", 400, 40, True)
-armchair_harp = Product("Harp", "armchair", 1500, 10, True)
-armchair_edsra = Product("Edsra", "armchair", 1200, 12, True)
-
 
 class Customer:
-    def __init__(self, name, its_vip=False):
+    def __init__(self, name, is_vip=False):
         self.name = name
-        self.its_vip = its_vip
+        self.is_vip = is_vip
 
     def calculate_discount(self, total_price):
-        if self.its_vip and total_price >= 5000:
+        if self.is_vip and total_price >= 5000:
             return 0.20
-        elif self.its_vip:
+        elif self.is_vip:
             return 0.15
         elif total_price >= 1000:
             return 0.05
@@ -51,7 +42,7 @@ class Customer:
     def apply_discount(self, total_price):
         discount = self.calculate_discount(total_price)
         if discount > 0:
-            print(f"Discount: {discount * 100:.2f}%")
+            print(f"\nDiscount: {discount * 100:.2f}%")
         return total_price * (1 - discount)
 
 
@@ -59,13 +50,22 @@ class Order:
     def __init__(self, customer, items=None):
         self.customer = customer
         self.items = items or []
+        self.rejected_items = []
         self.total_price = 0
 
     def add_item(self, product, amount):
-        self.items.append({
+        if product.reduce_stock(amount):
+            self.items.append({
+                "product": product,
+                "amount": amount
+            })
+            return True
+        self.rejected_items.append({
             "product": product,
-            "amount": amount
+            "amount": amount,
+            "reason": "Out of stock"
         })
+        return False
 
     def calculate_total_price(self):
         self.total_price = 0
@@ -79,9 +79,17 @@ class Order:
     def show_summary(self):
         print("\n========== Order Summary ==========")
         print(f"Customer: {self.customer.name}")
-        print(f"Type: {self.customer.its_vip and 'VIP' or 'Regular'}")
+        print(f"Type: {'VIP' if self.customer.is_vip else 'Regular'}")
         print("\nITEMS:")
         for item in self.items:
-            print(f" {item['product'].name} x {item['amount']}")
+            print(f" - {item['product'].name} x {item['amount']} | Unitary price: ${item['product'].unit_price:.2f} - Subtotal: ${item['product'].unit_price * item['amount']:.2f}")
         print(f"\nTOTAL: ${self.total_price:.2f}")
+
+        if self.rejected_items:
+            print("\nREJECTED ITEMS:")
+            for item in self.rejected_items:
+                print(f" - {item['product'].name} x {item['amount']} | Reason: {item['reason']}")
+
+        if not self.items:
+            print("\nNo items to show")
 
