@@ -2,17 +2,19 @@
 
 class Product:
     def __init__(self, name, category, unit_price, stock=0, active=True):
+        if unit_price <= 0:
+            raise ValueError("Unit price must be greater than 0")
+        self.unit_price = unit_price
+        if stock < 0:
+            raise ValueError("Stock cannot be negative")
+        self.stock = stock
         self.name = name
         self.category = category
-        self.unit_price = unit_price
-        self.stock = stock
         self.active = active
 
     def validate_stock(self, amount):
         if self.stock >= amount:
-            print(f"- {self.name} available: {self.stock}")
             return True
-        print(f"x {self.name} not available: {self.stock}")
         return False
 
     def reduce_stock(self, amount):
@@ -93,3 +95,9 @@ class Order:
         if not self.items:
             print("\nNo items to show")
 
+
+def test_stock_insuficiente():
+    p = Product("Mesa", "Muebles", 100, 2)
+    assert p.validate_stock(5) == False
+
+test_stock_insuficiente()
